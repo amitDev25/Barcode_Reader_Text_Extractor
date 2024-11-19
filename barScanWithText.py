@@ -5,7 +5,12 @@ import pytesseract
 import time
 import pandas as pd
 from datetime import datetime
+import os
 
+# Create folder to save snapshots if it doesn't exist
+snapshot_folder = "snapshots"
+if not os.path.exists(snapshot_folder):
+    os.makedirs(snapshot_folder)
 
 # Start video capture
 cap = cv2.VideoCapture(0)
@@ -22,6 +27,10 @@ data_list = []
 
 while True:
     success, img = cap.read()
+    
+    if not success:
+        print("Failed to capture image")
+        break  # Exit the loop if image capture fails
 
     for barcode in decode(img):
         myData = barcode.data.decode('utf-8')
@@ -30,6 +39,11 @@ while True:
         # Print myData only if 2 seconds have passed since the last print
         if current_time - last_print_time >= 2:
             print("Barcode Data:", myData)
+            pts = np.array([barcode.polygon], np.int32)
+            pts = pts.reshape((-1, 1, 2))
+            cv2.polylines(img, [pts], True, (255, 0, 255), 5)
+            pts2 = barcode.rect
+            cv2.putText(img, myData, (pts2[0], pts2[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 255), 2)
             last_print_time = current_time  # Update the last print time
 
             # Preprocess the frame for better OCR results
@@ -51,11 +65,16 @@ while True:
                 x, y, w, h = int(b[1]), int(b[2]), int(b[3]), int(b[4])
                 cv2.rectangle(img, (x, h), (w, y), (0, 255, 0), 2)
 
-            # Get the current timestamp
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # Get the current timestamp and replace ':' with '_'
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
             # Add the barcode data, extracted text, and timestamp to the list
             data_list.append([myData, extracted_text, timestamp])
+
+            # Save a snapshot of the frame when barcode data is detected
+            snapshot_filename = f"{snapshot_folder}/snapshot_{timestamp}.jpg"
+            cv2.imwrite(snapshot_filename, img)
+            print(f"Snapshot saved as: {snapshot_filename}")
 
         # Draw a polygon around the barcode and display the data on the image
         pts = np.array([barcode.polygon], np.int32)
