@@ -27,7 +27,7 @@ data_list = []
 
 while True:
     success, img = cap.read()
-    img = cv2.resize(img, (360,240))
+    img = cv2.resize(img, (720,720))
     
     if not success:
         print("Failed to capture image")
@@ -38,7 +38,7 @@ while True:
         current_time = time.time()
 
         # Print myData only if 2 seconds have passed since the last print
-        if current_time - last_print_time >= 1:
+        if current_time - last_print_time >= 2:
             print("Barcode Data:", myData)
             pts = np.array([barcode.polygon], np.int32)
             pts = pts.reshape((-1, 1, 2))
