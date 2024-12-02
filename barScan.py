@@ -17,8 +17,8 @@ while True:
         myData = barcode.data.decode('utf-8')
         current_time = time.time()
         
-        # Print myData only if 5 seconds have passed since the last print
-        if current_time - last_print_time >= 5:
+        # Print myData only if 2 seconds have passed since the last print
+        if current_time - last_print_time >= 2:
             print(myData)
             last_print_time = current_time  # Update the last print time
 
